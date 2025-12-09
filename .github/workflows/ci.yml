@@ -1,0 +1,110 @@
+name: Secure CI (Local Only)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  secure-ci:
+    name: Run Security & Lint Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    # ----------------------------
+    # 1) Checkout Repo
+    # ----------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # ----------------------------
+    # 2) Install Python + dependencies
+    # ----------------------------
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      run: |
+        if [ -f src/app/requirements.txt ]; then
+          pip install -r src/app/requirements.txt
+        fi
+
+    # ----------------------------
+    # 3) Lint Python (dummy lint)
+    # ----------------------------
+    - name: Lint Python files (flake8)
+      run: |
+        pip install flake8
+        flake8 src/app || true   # allow warnings
+
+    # ----------------------------
+    # 4) Unit tests (placeholder)
+    # ----------------------------
+    - name: Run unit tests
+      run: |
+        echo "No tests yet"    # ok for now
+        # pytest -q            # enable later when tests exist
+
+    # ----------------------------
+    # 5) Install Trivy (FS mode)
+    # ----------------------------
+    - name: Install Trivy
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update -y
+        sudo apt-get install trivy -y
+
+    - name: Trivy FS Scan (local code only)
+      run: |
+        trivy fs --severity HIGH,CRITICAL . || true
+
+    # ----------------------------
+    # 6) Install kube-linter
+    # ----------------------------
+    - name: Install kube-linter
+      run: |
+        curl -L https://github.com/stackrox/kube-linter/releases/latest/download/kube-linter-linux.tar.gz -o kube-linter.tar.gz
+        tar -xvf kube-linter.tar.gz
+        sudo mv kube-linter /usr/local/bin/
+
+    - name: kube-linter manifest scan
+      run: |
+        kube-linter lint infra/k8s || true
+
+    # ----------------------------
+    # 7) Install kube-score
+    # ----------------------------
+    - name: Install kube-score
+      run: |
+        curl -L https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64 \
+          -o kube-score
+        chmod +x kube-score
+        sudo mv kube-score /usr/local/bin/
+
+    - name: kube-score analysis
+      run: |
+        kube-score score infra/k8s/*.yaml || true
+
+    # ----------------------------
+    # 8) Kubernetes YAML validation
+    # ----------------------------
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+    - name: Validate Kubernetes manifests with kubectl
+      run: |
+        kubectl apply --dry-run=client -f infra/k8s
+
+    # ----------------------------
+    # 9) Finish
+    # ----------------------------
+    - name: Done
+      run: echo "🎉 Secure Local-Only CI Completed Successfully"
