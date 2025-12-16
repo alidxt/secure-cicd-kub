@@ -4,7 +4,7 @@ This repository contains a **local-first, secure, reactive CI/CD system for Kube
 
 The project demonstrates **DevSecOps practices**, **policy-as-code**, and **µs-inspired reactive Infrastructure-as-Code**, without using external registries or cloud services.
 
-> The project is intentionally **frozen at the end of Phase 1 (Step 3)** for academic evaluation.
+> The project is for academic evaluation and readme will be completed every two week.
 
 ---
 
