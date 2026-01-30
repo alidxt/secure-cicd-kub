@@ -1,35 +1,12 @@
-# Secure Reactive CI/CD with Kubernetes (Local-First)
+# secure-cicd-kub (local demo)
 
-This repository contains a **local-first, secure, reactive CI/CD system for Kubernetes**, developed as part of a university internship project.
+Local-only demo: build docker image locally, create a kind cluster, load image into kind, deploy manifests.
 
-The project demonstrates **DevSecOps practices**, **policy-as-code**, and **µs-inspired reactive Infrastructure-as-Code**, without using external registries or cloud services.
+Quickstart (inside Codespace):
 
-> The project is for academic evaluation and readme will be completed every two week.
-
----
-
-## Objectives (Phase 1)
-
-- Containerize and deploy a microservice to Kubernetes
-- Build a secure CI pipeline (local-safe mode)
-- Integrate automated security checks (DevSecOps)
-- Apply reactive IaC concepts (µs-inspired)
-- Enforce policy-based deployments
-- Ensure full local reproducibility
-
----
-
-## Technologies
-
-- Docker (local image only)
-- Kubernetes (kind)
-- GitHub Actions (CI)
-- Trivy (security scanning)
-- kube-linter / kube-score (manifest analysis)
-- Policy-as-code (OPA-style)
-- µs-inspired reactive logic
-
----
-
-## Repository Structure
+1. ./scripts/kind-setup.sh
+2. ./scripts/deploy-local.sh
+3. kubectl -n secure-app get pods,svc
+4. kubectl -n secure-app port-forward svc/secure-app 8080:80
+5. curl http://127.0.0.1:8080/
 

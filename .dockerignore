@@ -1,0 +1,15 @@
+# Ignore everything by default
+*
+
+# Allow Docker build files
+!Dockerfile
+!.dockerignore
+
+# Allow application source
+!src/
+!src/app/
+!src/app/**
+
+# Allow infra & scripts needed by build (safe)
+!scripts/
+!scripts/**

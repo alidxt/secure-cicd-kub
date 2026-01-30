@@ -1,15 +1,33 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from flask import Flask, Response
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import time
 import os
 
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type","text/plain; charset=utf-8")
-        self.end_headers()
-        self.wfile.write(b"secure-app: hello from Ali's demo\\n")
+app = Flask(__name__)
+
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint"]
+)
+
+REQUEST_LATENCY = Histogram(
+    "http_request_latency_seconds",
+    "HTTP request latency",
+    ["endpoint"]
+)
+
+@app.route("/")
+def index():
+    start = time.time()
+    REQUEST_COUNT.labels(method="GET", endpoint="/").inc()
+    REQUEST_LATENCY.labels(endpoint="/").observe(time.time() - start)
+    return "secure-app: hello from Ali's demo\n"
+
+@app.route("/metrics")
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8080"))
-    server = HTTPServer(("0.0.0.0", port), Handler)
-    print(f"Listening on {port}...")
-    server.serve_forever()
+    app.run(host="0.0.0.0", port=port)
