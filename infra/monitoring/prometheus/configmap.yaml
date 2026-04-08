@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+      evaluation_interval: 5s
+
+    scrape_configs:
+
+      - job_name: "secure-app"
+        static_configs:
+          - targets:
+              - "secure-app.secure-app.svc.cluster.local:80"
+
+      - job_name: "kube-state-metrics"
+        static_configs:
+          - targets:
+              - "kube-state-metrics.monitoring.svc.cluster.local:8080"

@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: secure-app
+  namespace: monitoring  # Keeping it in monitoring is fine
+  labels:
+    release: monitoring  # This helps the Prometheus Operator "discover" this file
+spec:
+  selector:
+    matchLabels:
+      app: secure-app    # Must match the label on your secure-app Service
+  namespaceSelector:
+    matchNames:
+      - secure-app       # Tells Prometheus to look into the other namespace
+  endpoints:
+    - port: http         # This refers to the 'name: http' you added to the Service
+      path: /metrics
+      interval: 15s
